@@ -337,11 +337,24 @@
             var url = window.location.href.split('?')[0] + '?view=true';
             var qrCodeContainer = document.getElementById('qrCodeContainer');
             qrCodeContainer.innerHTML = '';
+
             new QRCode(qrCodeContainer, {
                 text: url,
                 width: 256,
                 height: 256
             });
+
+            // Agregar el enlace con la misma URL que el código QR
+            var qrLink = document.createElement('a');
+            qrLink.href = url;
+            qrLink.textContent = 'Enlace a la vista de karaoke';
+            qrLink.target = '_blank'; // Abrir en una nueva pestaña
+            qrLink.style.display = 'block';
+            qrLink.style.marginTop = '10px';
+            qrLink.style.color = '#1DB954';
+            qrLink.style.textDecoration = 'none';
+
+            qrCodeContainer.appendChild(qrLink);
         }
 
         function saveArtistsToLocalStorage() {
