@@ -82,11 +82,11 @@
             background-color: #1DB954;
             border: none;
             color: #fff;
-            padding: 10px 20px;
+            padding: 5px 10px;
             text-align: center;
             text-decoration: none;
             display: inline-block;
-            font-size: 16px;
+            font-size: 11px;
             margin: 4px 2px;
             border-radius: 8px;
             cursor: pointer;
@@ -107,6 +107,22 @@
         #removeArtistForm.active {
             display: block; /* Mostrar el formulario de eliminar artista al hacer clic en el artista */
         }
+        .logout-button {
+            background-color: #ff3b30;
+            border: none;
+            color: #fff;
+            padding: 5px 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 12px;
+            margin: 4px 2px;
+            border-radius: 8px;
+            cursor: pointer;
+            position: absolute;
+            top: 10px;
+            left: 20px;
+        }
     </style>
 </head>
 <body>
@@ -120,6 +136,7 @@
     </div>
 
     <div id="mainContent" style="display: none;">
+        <button class="logout-button" onclick="logout()">Cerrar Sesión</button>
         <h2>Selecciona las canciones y subí a cantar</h2>
         <form id="songForm">
             <!-- AMERICO -->
@@ -172,6 +189,11 @@
             }
         }
 
+        function logout() {
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'flex';
+        }
+
         let artistCount = 2;
 
         function solicitarNombre(artista, cancion) {
@@ -204,8 +226,8 @@
         }
 
         function removeSongInput(button) {
-            var songInputToRemove = button.parentNode;
-            songInputToRemove.parentNode.removeChild(songInputToRemove);
+            var songInput = button.parentNode;
+            songInput.parentNode.removeChild(songInput);
 
             var songInputs = document.querySelectorAll('.songInput');
             songInputs.forEach(function(input, index) {
