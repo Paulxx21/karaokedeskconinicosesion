@@ -190,6 +190,7 @@
             if (username === 'PABLO' && password === 'GABRIEL') {
                 document.getElementById('loginContainer').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
+                loadArtistsFromLocalStorage();
             } else {
                 alert('Usuario o contraseña incorrectos');
             }
@@ -288,6 +289,8 @@
                     songInput.parentNode.removeChild(songInput);
                 });
                 document.getElementById('songInputs').innerHTML = '';
+
+                saveArtistsToLocalStorage();
             };
             reader.readAsDataURL(artistImage);
         }
@@ -304,6 +307,8 @@
                 if (select.options.length === 0) {
                     document.getElementById('removeArtistForm').classList.remove('active');
                 }
+
+                saveArtistsToLocalStorage();
             }
         }
 
@@ -329,7 +334,7 @@
         }
 
         function generateQRCode() {
-            var url = window.location.href + '?view=true';
+            var url = window.location.href.split('?')[0] + '?view=true';
             var qrCodeContainer = document.getElementById('qrCodeContainer');
             qrCodeContainer.innerHTML = '';
             new QRCode(qrCodeContainer, {
@@ -337,6 +342,45 @@
                 width: 256,
                 height: 256
             });
+        }
+
+        function saveArtistsToLocalStorage() {
+            var artists = [];
+            document.querySelectorAll('.artist').forEach(function(artist) {
+                var artistName = artist.querySelector('h3').textContent.trim();
+                var artistImage = artist.querySelector('img').src;
+                var songs = [];
+                artist.querySelectorAll('.songs li').forEach(function(songItem) {
+                    songs.push(songItem.querySelector('label').textContent.trim());
+                });
+                artists.push({ name: artistName, image: artistImage, songs: songs });
+            });
+            localStorage.setItem('artists', JSON.stringify(artists));
+        }
+
+        function loadArtistsFromLocalStorage() {
+            var artists = JSON.parse(localStorage.getItem('artists')) || [];
+            artists.forEach(function(artistData, index) {
+                var artistDiv = document.createElement('div');
+                artistDiv.className = 'artist';
+                artistDiv.id = 'artist' + index;
+
+                var artistContent = '<div><h3 onclick="toggleArtistOptions(\'artist' + index + '\')">' + artistData.name + ' &#9660;</h3><ul class="songs">';
+                artistData.songs.forEach(function(song, songIndex) {
+                    artistContent += '<li><input type="radio" id="' + artistData.name.replace(/\s+/g, '').toLowerCase() + songIndex + '" name="song" value="' + song + '" onclick="solicitarNombre(\'' + artistData.name + '\', \'' + song + '\')"><label for="' + artistData.name.replace(/\s+/g, '').toLowerCase() + songIndex + '"> ' + song + '</label></li>';
+                });
+                artistContent += '</ul></div>';
+                artistContent += '<img src="' + artistData.image + '" alt="' + artistData.name + '">';
+
+                artistDiv.innerHTML = artistContent;
+                document.getElementById('songForm').appendChild(artistDiv);
+
+                var option = document.createElement('option');
+                option.value = 'artist' + index;
+                option.text = artistData.name;
+                document.getElementById('artistToRemove').appendChild(option);
+            });
+            artistCount = artists.length;
         }
 
         function initViewMode() {
@@ -349,6 +393,7 @@
                 document.getElementById('removeArtistForm').style.display = 'none';
                 document.querySelector('.logout-button').style.display = 'none';
                 document.querySelector('.buttons').style.display = 'none';
+                loadArtistsFromLocalStorage();
             }
         }
 
