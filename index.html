@@ -82,11 +82,11 @@
             background-color: #1DB954;
             border: none;
             color: #fff;
-            padding: 5px 10px;
+            padding: 10px 20px;
             text-align: center;
             text-decoration: none;
             display: inline-block;
-            font-size: 11px;
+            font-size: 16px;
             margin: 4px 2px;
             border-radius: 8px;
             cursor: pointer;
@@ -111,16 +111,16 @@
             background-color: #ff3b30;
             border: none;
             color: #fff;
-            padding: 5px 10px;
+            padding: 10px 20px;
             text-align: center;
             text-decoration: none;
             display: inline-block;
-            font-size: 12px;
+            font-size: 16px;
             margin: 4px 2px;
             border-radius: 8px;
             cursor: pointer;
             position: absolute;
-            top: 10px;
+            top: 20px;
             left: 20px;
         }
     </style>
@@ -175,8 +175,14 @@
                 <button type="submit" class="action">Eliminar Artista</button>
             </form>
         </div>
+
+        <div class="buttons">
+            <button class="action" onclick="generateQRCode()">Generar Código QR</button>
+        </div>
+        <div id="qrCodeContainer" style="text-align: center; margin-top: 20px;"></div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         function login() {
             var username = document.getElementById('username').value;
@@ -210,19 +216,16 @@
         }
 
         function addSongInput() {
-            var songInputs = document.querySelectorAll('.songInput');
-            var songCount = songInputs.length + 1;
+            var songInputsContainer = document.getElementById('songInputs');
+            var songInputCount = songInputsContainer.getElementsByClassName('songInput').length;
 
-            if (songCount <= 10) {
-                var songInput = document.createElement('div');
-                songInput.className = 'songInput';
-                songInput.innerHTML = `<label for="song${songCount}">Canción ${songCount}:</label><br>
-                                       <input type="text" id="song${songCount}" name="song${songCount}" required>
-                                       <button type="button" class="action" onclick="removeSongInput(this)">Eliminar</button><br><br>`;
-                document.getElementById('songInputs').appendChild(songInput);
-            } else {
-                alert("Solo puedes agregar hasta 10 canciones.");
-            }
+            var newSongInput = document.createElement('div');
+            newSongInput.className = 'songInput';
+            newSongInput.innerHTML = '<label for="song' + (songInputCount + 1) + '">Canción ' + (songInputCount + 1) + ':</label><br>' +
+                                     '<input type="text" id="song' + (songInputCount + 1) + '" name="song' + (songInputCount + 1) + '" required>' +
+                                     '<button type="button" class="action" onclick="removeSongInput(this)">Eliminar canción</button><br><br>';
+
+            songInputsContainer.appendChild(newSongInput);
         }
 
         function removeSongInput(button) {
@@ -324,6 +327,32 @@
                 document.getElementById('removeArtistForm').classList.add('active');
             }
         }
+
+        function generateQRCode() {
+            var url = window.location.href + '?view=true';
+            var qrCodeContainer = document.getElementById('qrCodeContainer');
+            qrCodeContainer.innerHTML = '';
+            new QRCode(qrCodeContainer, {
+                text: url,
+                width: 256,
+                height: 256
+            });
+        }
+
+        function initViewMode() {
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('view')) {
+                document.querySelectorAll('.artist h3').forEach(function(element) {
+                    element.removeAttribute('onclick');
+                });
+                document.getElementById('newArtistForm').style.display = 'none';
+                document.getElementById('removeArtistForm').style.display = 'none';
+                document.querySelector('.logout-button').style.display = 'none';
+                document.querySelector('.buttons').style.display = 'none';
+            }
+        }
+
+        window.onload = initViewMode;
     </script>
 </body>
 </html>
