@@ -107,23 +107,19 @@
         #removeArtistForm.active {
             display: block; /* Mostrar el formulario de eliminar artista al hacer clic en el artista */
         }
-        .logout-button {
-            background-color: #ff3b30;
-            border: none;
-            color: #fff;
-            padding: 10px 20px;
+        .qr-container {
             text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
-            border-radius: 8px;
-            cursor: pointer;
-            position: absolute;
-            top: 20px;
-            left: 20px;
+            margin-top: 20px;
+        }
+        .qr-code {
+            margin-top: 20px;
+        }
+        #updateButton {
+            display: none; /* Ocultar el botón de actualizar inicialmente */
         }
     </style>
+    <!-- Incluir la librería para generar el código QR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
     <div class="login-container" id="loginContainer">
@@ -136,7 +132,6 @@
     </div>
 
     <div id="mainContent" style="display: none;">
-        <button class="logout-button" onclick="logout()">Cerrar Sesión</button>
         <h2>Selecciona las canciones y subí a cantar</h2>
         <form id="songForm">
             <!-- AMERICO -->
@@ -176,13 +171,17 @@
             </form>
         </div>
 
-        <div class="buttons">
+        <div class="qr-container">
             <button class="action" onclick="generateQRCode()">Generar Código QR</button>
+            <div class="qr-code" id="qrcode"></div>
+            <p><a href="#" id="qrLink" target="_blank">Ver en navegador</a></p>
         </div>
-        <div id="qrCodeContainer" style="text-align: center; margin-top: 20px;"></div>
+
+        <div class="buttons">
+            <button id="updateButton" class="action" onclick="updateQRCode()">Actualizar</button>
+        </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         function login() {
             var username = document.getElementById('username').value;
@@ -190,14 +189,11 @@
             if (username === 'PABLO' && password === 'GABRIEL') {
                 document.getElementById('loginContainer').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('updateButton').style.display = 'block';
+                updateQRCode();
             } else {
                 alert('Usuario o contraseña incorrectos');
             }
-        }
-
-        function logout() {
-            document.getElementById('mainContent').style.display = 'none';
-            document.getElementById('loginContainer').style.display = 'flex';
         }
 
         let artistCount = 2;
@@ -216,21 +212,22 @@
         }
 
         function addSongInput() {
-            var songInputsContainer = document.getElementById('songInputs');
-            var songInputCount = songInputsContainer.getElementsByClassName('songInput').length;
+            var songInputs = document.querySelectorAll('.songInput');
+            var songCount = songInputs.length + 1;
 
-            var newSongInput = document.createElement('div');
-            newSongInput.className = 'songInput';
-            newSongInput.innerHTML = '<label for="song' + (songInputCount + 1) + '">Canción ' + (songInputCount + 1) + ':</label><br>' +
-                                     '<input type="text" id="song' + (songInputCount + 1) + '" name="song' + (songInputCount + 1) + '" required>' +
-                                     '<button type="button" class="action" onclick="removeSongInput(this)">Eliminar canción</button><br><br>';
-
-            songInputsContainer.appendChild(newSongInput);
+            if (songCount <= 10) {
+                var songInput = document.createElement('div');
+                songInput.className = 'songInput';
+                songInput.innerHTML = `<label for="song${songCount}">Canción ${songCount}:</label><input type="text" id="song${songCount}" name="song${songCount}" required><button type="button" onclick="removeSongInput(this)">Eliminar</button>`;
+                document.getElementById('songInputs').appendChild(songInput);
+            } else {
+                alert("No puedes agregar más de 10 canciones.");
+            }
         }
 
         function removeSongInput(button) {
-            var songInput = button.parentNode;
-            songInput.parentNode.removeChild(songInput);
+            var songInputToRemove = button.parentNode;
+            songInputToRemove.parentNode.removeChild(songInputToRemove);
 
             var songInputs = document.querySelectorAll('.songInput');
             songInputs.forEach(function(input, index) {
@@ -288,6 +285,8 @@
                     songInput.parentNode.removeChild(songInput);
                 });
                 document.getElementById('songInputs').innerHTML = '';
+
+                updateQRCode();
             };
             reader.readAsDataURL(artistImage);
         }
@@ -304,6 +303,8 @@
                 if (select.options.length === 0) {
                     document.getElementById('removeArtistForm').classList.remove('active');
                 }
+
+                updateQRCode();
             }
         }
 
@@ -329,31 +330,34 @@
         }
 
         function generateQRCode() {
-            var url = window.location.href + '?view=true';
-            var qrCodeContainer = document.getElementById('qrCodeContainer');
-            qrCodeContainer.innerHTML = '';
-            new QRCode(qrCodeContainer, {
+            updateQRCode();
+        }
+
+        function updateQRCode() {
+            var url = window.location.href.split('?')[0] + '?view=users';
+            document.getElementById('qrLink').href = url;
+
+            document.getElementById('qrcode').innerHTML = "";
+            var qrcode = new QRCode(document.getElementById("qrcode"), {
                 text: url,
-                width: 256,
-                height: 256
+                width: 128,
+                height: 128,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
             });
         }
 
-        function initViewMode() {
+        window.onload = function() {
             var urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('view')) {
-                document.querySelectorAll('.artist h3').forEach(function(element) {
-                    element.removeAttribute('onclick');
-                });
+            if (urlParams.get('view') === 'users') {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
                 document.getElementById('newArtistForm').style.display = 'none';
                 document.getElementById('removeArtistForm').style.display = 'none';
-                document.querySelector('.logout-button').style.display = 'none';
-                document.querySelector('.buttons').style.display = 'none';
+                document.querySelector('.qr-container').style.display = 'none';
             }
         }
-
-        window.onload = initViewMode;
     </script>
 </body>
 </html>
-
